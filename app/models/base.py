@@ -1,10 +1,14 @@
-from sqlalchemy import Column, Integer, DateTime
+from sqlalchemy import Column, Integer, DateTime, Boolean
 from sqlalchemy.sql import func
 from app.config.database import Base
 
+
 class BaseModel(Base):
     __abstract__ = True
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    created_at = Column(DateTime, default=func.now(), nullable=False)
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    is_deleted = Column(Boolean, nullable=False, default=False)

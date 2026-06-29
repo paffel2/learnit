@@ -16,12 +16,11 @@ if config.config_file_name is not None:
 
 from app.config.database import Base
 from app.config.config import settings
-from app.models import user
+from app.models import user, question, subject, theme
 
 target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
-
 
 
 def run_migrations_offline() -> None:
@@ -62,9 +61,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
