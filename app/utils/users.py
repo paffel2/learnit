@@ -8,14 +8,16 @@ from app.queries.users import (
 from app.schemas.user import UserCreate, UserToken, UserLogin
 from app.schemas.error import ErrorResponse
 from app.config.config import settings
-from cryptography.fernet import Fernet
 import hashlib
 import base64
 import jwt
+import datetime
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
 
 
 def hash_password(password):
-    secret = settings.SECRET_KEY
+    secret = settings.PASSWORD_SECRET_KEY
     hash_bytes = hashlib.pbkdf2_hmac(
         "sha256", password.encode(), secret.encode(), 100000
     )
@@ -51,11 +53,52 @@ def auth(user_data: UserLogin, session: Session):
             session=session,
         )
     if user:
-        token = create_jwt_token(user.id)
-        return 201, UserToken(token=token)
+        access_token = create_access_token(user.id)
+        refresh_token = create_refresh_token(user.id)
+        return 201, UserToken(token=access_token), refresh_token
     else:
-        return 404, ErrorResponse(detail="Not found")
+        return 404, ErrorResponse(detail="Not found"), None
 
 
-def create_jwt_token(user_id: int):
-    return jwt.encode({"user_id": user_id}, settings.SECRET_KEY, algorithm="HS256")
+def refresh_access_token(refresh_token: str):
+    token_info = jwt.decode(
+        refresh_token, settings.REFRESH_SECRET_KEY, algorithms=["HS256"]
+    )
+    access_token = create_access_token(token_info["user_id"])
+    now = datetime.datetime.now().timestamp()
+    exp_date = token_info["exp"]
+    if exp_date < now:
+        return 401, ErrorResponse(detail="Refresh token expired"), None
+    # TODO сделать запись refresh токена в redis
+    return 201, UserToken(token=access_token)
+
+
+def create_access_token(user_id: int):
+    return create_jwt_token(user_id, settings.ACCESS_SECRET_KEY)
+
+
+def create_refresh_token(user_id: int):
+    return create_jwt_token(user_id, settings.REFRESH_SECRET_KEY, 60 * 60 * 24)
+
+
+def create_jwt_token(user_id: int, secret_key, exp=900):
+    now = datetime.datetime.now()
+    exp = now + datetime.timedelta(seconds=exp)
+    return jwt.encode(
+        {
+            "user_id": user_id,
+            "exp": exp,
+        },
+        secret_key,
+        algorithm="HS256",
+    )
+
+
+security = HTTPBearer()
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    return jwt.decode(token, settings.ACCESS_SECRET_KEY, algorithms=["HS256"]).get(
+        "user_id"
+    )

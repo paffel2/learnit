@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import themes
-from app.api.v1.endpoints import users
+from app import api
+from app.api.v1.endpoints import themes, users, subjects
 
 api_router = APIRouter()
-api_router.include_router(users.router, prefix="/users", tags=["users"])
-api_router.include_router(themes.router, prefix="/subjects", tags=["subjects"])
+api_router.include_router(users.router, tags=["users"])
+api_router.include_router(themes.router, tags=["subjects"])
+api_router.include_router(subjects.router, tags=["subjects"])
