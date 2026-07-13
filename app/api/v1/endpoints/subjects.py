@@ -4,7 +4,7 @@ from app.queries.subjects import (
     get_subjects,
     create_subject_in_db,
     get_subject_detail,
-    fuLL_update_subject,
+    full_update_subject,
     delete_subject_from_db,
     partial_update_subject,
 )
@@ -65,7 +65,7 @@ async def update_subject(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    return fuLL_update_subject(
+    return full_update_subject(
         subject_id=subject_id,
         user_id=user_id,
         name=subject.name,

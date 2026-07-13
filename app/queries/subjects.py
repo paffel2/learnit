@@ -37,7 +37,7 @@ def get_subject_detail(subject_id: int, user_id: int, session: Session) -> Subje
     return session.query(Subject).filter_by(id=subject_id, user_id=user_id).first()
 
 
-def fuLL_update_subject(
+def full_update_subject(
     subject_id: int, user_id: int, name: str, order: int, session: Session
 ):
     query = (
