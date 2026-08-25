@@ -10,6 +10,7 @@ class User(BaseModel):
     username = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, nullable=False, default=True)
+    is_superuser = Column(Boolean, nullable=False, default=False)
 
     subjects = relationship("Subject", back_populates="user")
 

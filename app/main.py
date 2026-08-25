@@ -4,9 +4,11 @@ from app.config.config import settings
 from app.config.database import engine
 from sqladmin import Admin
 from app.admin import admin_models
+from app.admin.auth import AdminAuth
 
 app = FastAPI(title=settings.PROJECT_NAME)
-admin = Admin(app, engine=engine)
+authentication_backend = AdminAuth(secret_key="...")
+admin = Admin(app, engine=engine, authentication_backend=authentication_backend)
 
 for model in admin_models:
     admin.add_view(model)
