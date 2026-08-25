@@ -1,8 +1,8 @@
-"""added_base_models_for_questions
+"""added_base_models
 
-Revision ID: a585e916d819
+Revision ID: c2bd9c313418
 Revises:
-Create Date: 2026-06-29 09:49:33.513925+00:00
+Create Date: 2026-08-25 07:11:03.306644+00:00
 
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision: str = "a585e916d819"
+revision: str = "c2bd9c313418"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,6 @@ def upgrade() -> None:
         sa.Column("username", sa.String(), nullable=False),
         sa.Column("hashed_password", sa.String(), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
@@ -40,6 +39,7 @@ def upgrade() -> None:
             server_default=sa.text("(CURRENT_TIMESTAMP)"),
             nullable=False,
         ),
+        sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
@@ -48,7 +48,6 @@ def upgrade() -> None:
     op.create_table(
         "subjects",
         sa.Column("name", sa.String(length=256), nullable=False),
-        sa.Column("is_deleted", sa.Boolean(), nullable=True),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("order", sa.Integer(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
@@ -64,6 +63,7 @@ def upgrade() -> None:
             server_default=sa.text("(CURRENT_TIMESTAMP)"),
             nullable=False,
         ),
+        sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
@@ -75,7 +75,6 @@ def upgrade() -> None:
     op.create_table(
         "themes",
         sa.Column("name", sa.String(length=256), nullable=True),
-        sa.Column("is_deleted", sa.Boolean(), nullable=True),
         sa.Column("subject_id", sa.Integer(), nullable=False),
         sa.Column("order", sa.Integer(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
@@ -91,6 +90,7 @@ def upgrade() -> None:
             server_default=sa.text("(CURRENT_TIMESTAMP)"),
             nullable=False,
         ),
+        sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["subject_id"],
             ["subjects.id"],
@@ -102,11 +102,11 @@ def upgrade() -> None:
     op.create_table(
         "questions",
         sa.Column("name", sa.String(length=256), nullable=False),
-        sa.Column("is_deleted", sa.Boolean(), nullable=True),
         sa.Column("subject_id", sa.Integer(), nullable=False),
         sa.Column("theme_id", sa.Integer(), nullable=True),
         sa.Column("text", sa.String(), nullable=True),
         sa.Column("order", sa.Integer(), nullable=False),
+        sa.Column("content", sa.JSON(), nullable=True),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
@@ -120,6 +120,7 @@ def upgrade() -> None:
             server_default=sa.text("(CURRENT_TIMESTAMP)"),
             nullable=False,
         ),
+        sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["subject_id"],
             ["subjects.id"],
