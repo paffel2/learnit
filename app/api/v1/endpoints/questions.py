@@ -99,7 +99,7 @@ async def update_question(
 
 
 @router.delete("/{subject_id}/themes/{theme_id}/questions/{question_id}")
-async def delete_theme(
+async def delete_question(
     subject_id: int,
     theme_id: int,
     question_id: int,

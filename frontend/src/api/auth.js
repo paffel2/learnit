@@ -11,8 +11,8 @@ export const authAPI = {
   login: async (data) => {
     const response = await apiClient.post('/api/v1/users/login', data);
     // Предполагаем, что токен приходит в ответе
-    if (response.data.access_token) {
-      localStorage.setItem('access_token', response.data.access_token);
+    if (response.data.token) {
+      localStorage.setItem('access_token', response.data.token);
     }
     return response.data;
   },

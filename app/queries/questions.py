@@ -16,6 +16,7 @@ def get_questions_by_subject_and_themes(
             Question.subject_id == subject_id,
             Question.theme_id == theme_id,
             Subject.user_id == user_id,
+            Question.is_deleted == False,
         )
         .all()
     )
@@ -39,6 +40,7 @@ def create_question_in_db(
             Question.subject_id == subject_id,
             Question.theme_id == theme_id,
             Subject.user_id == user_id,
+            Question.is_deleted == False,
         )
         .order_by(Question.order.desc())
         .first()
@@ -117,7 +119,7 @@ def full_update_question(
 def delete_question_from_db(
     subject_id: int, theme_id: int, question_id: int, user_id: int, session: Session
 ):
-    return (
+    question = (
         session.query(Question)
         .join(Subject, Question.subject_id == Subject.id)
         .join(Theme, Question.theme_id == theme_id)
@@ -127,8 +129,13 @@ def delete_question_from_db(
             Question.theme_id == theme_id,
             Question.id == question_id,
         )
-        .update({"is_deleted": True})
+        .first()
     )
+    if not question:
+        raise ValueError("Question not found or access denied")
+    question.is_deleted = True
+    session.commit()
+    return question
 
 
 def partial_update_question(

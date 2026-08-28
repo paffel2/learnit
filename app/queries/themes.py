@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.theme import Theme
 from app.models.subject import Subject
-from sqlalchemy import update as sa_update
+from sqlalchemy import update as sa_update, select
 
 
 def get_themes_by_subject(subject_id: int, user_id: int, session: Session):
@@ -11,6 +11,7 @@ def get_themes_by_subject(subject_id: int, user_id: int, session: Session):
         .filter(
             Theme.subject_id == subject_id,
             Subject.user_id == user_id,
+            Theme.is_deleted == False,
         )
         .all()
     )
@@ -23,14 +24,18 @@ def create_theme_in_db(
     last_theme = (
         session.query(Theme)
         .join(Subject, Theme.subject_id == Subject.id)
-        .filter(Theme.subject_id == subject_id, Subject.user_id == user_id)
+        .filter(
+            Theme.subject_id == subject_id,
+            Subject.user_id == user_id,
+            Theme.is_deleted == False,
+        )
         .order_by(Theme.order.desc())
         .first()
     )
     order = 0
     if last_theme:
         order = last_theme.order + 1
-    theme = Theme(name=name, user_id=user_id, subject_id=subject_id, order=order)
+    theme = Theme(name=name, subject_id=subject_id, order=order)
     session.add(theme)
     session.commit()
     session.refresh(theme)
@@ -47,6 +52,7 @@ def get_theme_detail(
             Theme.subject_id == subject_id,
             Subject.user_id == user_id,
             Theme.id == theme_id,
+            Theme.is_deleted == False,
         )
         .first()
     )
@@ -80,7 +86,8 @@ def full_update_theme(
 def delete_theme_from_db(
     subject_id: int, theme_id: int, user_id: int, session: Session
 ) -> Subject:
-    return (
+
+    theme = (
         session.query(Theme)
         .join(Subject, Theme.subject_id == Subject.id)
         .filter(
@@ -88,8 +95,16 @@ def delete_theme_from_db(
             Subject.user_id == user_id,
             Theme.id == theme_id,
         )
-        .update({"is_deleted": True})
+        .first()
     )
+
+    if not theme:
+        raise ValueError("Theme not found or access denied")
+
+    theme.is_deleted = True
+    session.commit()
+
+    return theme
 
 
 def partial_update_theme(

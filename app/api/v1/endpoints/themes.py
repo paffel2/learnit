@@ -8,7 +8,7 @@ from app.queries.themes import (
     delete_theme_from_db,
     partial_update_theme,
 )
-from app.schemas.theme import Theme as ThemeSchema
+from app.schemas.theme import ThemeSchema, ThemeCreateSchema
 from app.config.database import get_db
 from sqlalchemy.orm import Session
 from app.utils.users import get_current_user
@@ -29,7 +29,7 @@ async def get_themes(
 @router.post("/{subject_id}/themes", response_model=ThemeSchema)
 async def create_theme(
     subject_id: int,
-    theme: ThemeSchema,
+    theme: ThemeCreateSchema,
     db: Session = Depends(get_db),
     user_id=Depends(get_current_user),
 ):
